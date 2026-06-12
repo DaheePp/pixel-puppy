@@ -711,8 +711,9 @@ function moveToward(tx, ty, speed, dt) {
    8. 상호작용 (밥 / 놀기 / 산책 / 쓰다듬기)
    ========================================================= */
 function feed() {
-  if (busy()) return;
+  if (state === 'eat' || state === 'toBowl') return;   // 식사 중에만 잠김
   if (pet.hunger >= 90) { say('지금은 배불러요! 🐽'); return; }
+  interrupt();                                          // 하던 활동은 정리하고 전환
   const spot = randomSpot();
   bowl.active = true; bowl.x = spot.x; bowl.y = spot.y;
   // 프로그레스바용: 걸어가는 시간 + 먹는 시간(4초) = 전체 예상 시간
@@ -727,8 +728,9 @@ function feed() {
 }
 
 function play() {
-  if (busy()) return;
+  if (state === 'eat' || state === 'toBowl' || playSession) return;
   if (pet.energy <= 10) { say('너무 피곤해요... 😪'); return; }
+  interrupt();
   const spot = randomSpot();
   ball.active = true; ball.settled = false;
   ball.x = spot.x; ball.y = spot.y;
@@ -737,7 +739,7 @@ function play() {
   ball.vx = Math.cos(ang) * v; ball.vy = Math.sin(ang) * v * 0.6;
   positionBall();
   ballEl.style.display = 'block';
-  say('공이다!! ⚽ 공을 끌어서 던져보세요!', 3);
+  say('공이다!! ⚽', 2);
   playCtx = 'ball';
   playSession = true;
   lastBallTouch = performance.now();
@@ -754,12 +756,29 @@ function nudgeBall() {
   dir = ball.vx > 0 ? 1 : -1;          // 굴린 방향을 바라보기
 }
 
+/* 산책 마무리: 집 배경 복귀 + 보상 (도중에 다른 행동으로 전환해도 보상은 받아요) */
+function endWalkies() {
+  setVisual(pet.theme);
+  pet.happy = Math.min(100, pet.happy + 30);
+  pet.hunger = Math.max(0, pet.hunger - 12);  // 산책하면 배가 많이 고파져요
+  pet.energy = Math.max(0, pet.energy - 12);
+  gainXp(20);
+}
+
+/* 하던 활동 정리: 다른 버튼을 눌러도 자연스럽게 전환되도록 */
+function interrupt() {
+  if (playSession) endPlay();
+  else if (state === 'walkies') endWalkies();
+  jumpUp = false;
+}
+
 /* 놀이 끝: 10초간 공을 안 건드리면 호출됨 */
 function endPlay() {
   playSession = false; dragging = false; jumpUp = false;
   ball.active = false; ballEl.style.display = 'none';
   pet.happy = Math.min(100, pet.happy + 35);
   pet.energy = Math.max(0, pet.energy - 8);
+  pet.hunger = Math.max(0, pet.hunger - 8);   // 신나게 놀면 배가 고파져요
   gainXp(15);
   hearts(4);
   say('재밌었다~! 🥎', 2.5);
@@ -767,8 +786,9 @@ function endPlay() {
 }
 
 function walkies() {
-  if (busy()) return;
+  if (state === 'eat' || state === 'toBowl' || state === 'walkies') return;
   if (pet.energy <= 20) { say('산책 가기엔 너무 졸려요... 💤'); return; }
+  interrupt();
   const [dest, phrase] = WALK_DEST[pet.theme];
   setVisual(dest);                       // 산책지로 배경 전환!
   walkiesTimer = 10;
@@ -781,7 +801,7 @@ function walkies() {
        평소엔 종종종 달려오고, 산책 중엔 터치할 때마다 10초 연장 ----- */
 window.addEventListener('pointerdown', e => {
   if (e.target !== document.body) return;        // 버튼/패널/강아지 클릭은 제외
-  if (busy() && state !== 'walkies') return;     // 밥 먹기/공 놀이 중엔 무시
+  if (state === 'eat' || state === 'toBowl' || playSession) return;  // 식사/공놀이 중엔 무시
   const ft = floorTop();
   walkTarget = {
     x: Math.max(40, Math.min(innerWidth - 40, e.clientX)),
@@ -835,8 +855,9 @@ window.addEventListener('pointerup', () => {
 
 /* 재우기: 쿠션으로 가서 낮잠 → 에너지 회복 (다 차면 알아서 기상) */
 function sleepNow() {
-  if (busy() || state === 'sleep' || state === 'toSleep') return;
+  if (state === 'eat' || state === 'toBowl' || state === 'sleep' || state === 'toSleep') return;
   if (pet.energy >= 85) { say('지금은 안 졸려요! 😆'); return; }
+  interrupt();
   walkTarget = { x: cushion().x, y: cushion().y + 4 };
   setState('toSleep', 9999);
   say('쿠션에서 코~ 잘게요 💤');
@@ -935,12 +956,8 @@ function loop(now) {
     if (sparkleClock > 0.45) { sparkleClock = 0; spawnFx(['✨','🎵','💨'], 1, dog.x, dog.y); }
     walkiesTimer -= dt;
     if (walkiesTimer <= 0) {
-      setVisual(pet.theme);              // 산책 끝, 집으로 돌아오기
-      pet.happy = Math.min(100, pet.happy + 30);
-      pet.hunger = Math.max(0, pet.hunger - 5);
-      pet.energy = Math.max(0, pet.energy - 12);
+      endWalkies();                      // 산책 끝, 집으로 돌아오기
       say('산책 최고! 🥰', 2.5);
-      gainXp(20);
       setState('lie', 4);
     }
   }
@@ -1053,33 +1070,36 @@ function render() {
   document.getElementById('mood').textContent =
     state === 'sleep' ? '😴' : lowest < 20 ? '😢' : lowest < 45 ? '😐' : '😊';
 
-  document.getElementById('btnFeed').disabled = busy() || pet.hunger >= 90;
-  document.getElementById('btnPlay').disabled = busy() || pet.energy <= 10;
-  document.getElementById('btnWalk').disabled = busy() || pet.energy <= 20;
+  // 식사 중에만 모든 버튼이 잠겨요. 나머지 활동은 버튼 누르면 바로 전환!
+  const eating = state === 'eat' || state === 'toBowl';
   const sleeping = state === 'sleep' || state === 'toSleep';
-  document.getElementById('btnSleep').disabled = busy() || sleeping || pet.energy >= 85;
+  document.getElementById('btnFeed').disabled = eating || pet.hunger >= 90;
+  document.getElementById('btnPlay').disabled = eating || playSession || pet.energy <= 10;
+  document.getElementById('btnWalk').disabled = eating || state === 'walkies' || pet.energy <= 20;
+  document.getElementById('btnSleep').disabled = eating || sleeping || pet.energy >= 85;
   // 산책 중엔 테마 변경 잠금
   document.querySelectorAll('#themeRow button').forEach(b => b.disabled = state === 'walkies');
 
-  // 안내 문구: 산책 중엔 터치 가이드로 바뀜
+  // 안내 문구: 상황에 맞는 가이드로 바뀜
   document.getElementById('tip').textContent = state === 'walkies'
     ? '바닥을 터치하면 그곳으로 달려가요! 터치할 때마다 산책 연장 🐾'
+    : playSession
+    ? '공을 잡아서 끌다가 놓으면 던질 수 있어요! ⚽'
     : '강아지를 클릭하면 쓰다듬을 수 있어요!';
 
   /* --- 버튼 아래 프로그레스바 (남은 시간) --- */
   // 지금 진행 중인 활동의 남은 시간 비율 (1 → 0으로 줄어듦)
-  let actFrac = null;   // 놀아주기/산책 중에는 표시하지 않음 (null이면 숨겨짐)
+  let actFrac = null;   // 식사 중일 때의 남은 시간 (걷기 + 먹기 4초)
   if (state === 'eat') actFrac = stateTimer / 4;
   else if (state === 'toBowl')
     actFrac = (Math.hypot(bowl.x - 40 - dog.x, bowl.y + 2 - dog.y) / 110 + 4) / bowl.total;
-  else if (state === 'playing' && playCtx === 'toy') actFrac = stateTimer / 2.5;  // 혼자 장난감 놀이
 
-  // 활동 중이면 활동 남은 시간을, 아니면 스탯 회복 진행률을 표시
-  setCd('cdFeed', busy() ? actFrac : (pet.hunger >= 90 ? (100 - pet.hunger) / 10 : null));
-  setCd('cdPlay', busy() ? actFrac : (pet.energy <= 10 ? pet.energy / 10 : null));
-  setCd('cdWalk', busy() ? actFrac : (pet.energy <= 20 ? pet.energy / 20 : null));
+  // 식사 중이면 남은 시간을, 아니면 스탯 회복 진행률을 표시
+  setCd('cdFeed', eating ? actFrac : (pet.hunger >= 90 ? (100 - pet.hunger) / 10 : null));
+  setCd('cdPlay', eating ? actFrac : (pet.energy <= 10 ? pet.energy / 10 : null));
+  setCd('cdWalk', eating ? actFrac : (pet.energy <= 20 ? pet.energy / 20 : null));
   // 자는 동안엔 에너지 차오르는 진행률 표시
-  setCd('cdSleep', busy() ? actFrac : (sleeping ? pet.energy / 85 : null));
+  setCd('cdSleep', eating ? actFrac : (sleeping ? pet.energy / 85 : null));
 }
 
 function setCd(id, frac) {
