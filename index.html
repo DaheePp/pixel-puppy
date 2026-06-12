@@ -1324,7 +1324,10 @@ const HOME_ORDER = ['grass', 'beach', 'room'];
 function applyTheme(t, animate) {
   const dir = HOME_ORDER.indexOf(t) >= HOME_ORDER.indexOf(pet.theme) ? 1 : -1;
   pet.theme = t;
-  if (animate) slideToVisual(t, dir, true);   // 버튼 전환은 슬라이딩 연출
+  if (animate) {
+    interrupt();              // 공놀이 등 진행 중이던 활동 정리 (공이 덩그러니 남지 않게)
+    slideToVisual(t, dir, true);   // 버튼 전환은 슬라이딩 연출
+  }
   else setVisual(t);                          // 최초 로드는 즉시
   document.querySelectorAll('#themeRow button').forEach(btn =>
     btn.classList.toggle('on', btn.dataset.theme === t));
