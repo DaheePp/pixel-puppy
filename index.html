@@ -13,12 +13,13 @@
   body.theme-grass, #slideLayer.theme-grass {
     background-color:#90c26b;
     background-image:
-      radial-gradient(#9ecf79 14%, transparent 15%),
+      /* 하늘(파랑) → 30% 지점에서 잔디 지평선으로 (해변처럼) */
+      linear-gradient(180deg, #5cb6d6 0%, #86cfe6 15%, #b9e6f0 23%, #cdeccb 27.5%, #93c56e 30.5%, transparent 33%),
+      radial-gradient(#9ecf79 14%, transparent 15%),     /* 잔디 점무늬 */
       radial-gradient(#85b65f 11%, transparent 12%),
-      linear-gradient(180deg, #b6e0f0 0%, #c7e7a8 12%, transparent 28%),
-      linear-gradient(0deg, rgba(60,90,40,.18) 0%, transparent 30%);
-    background-size:110px 110px, 160px 160px, 100% 100%, 100% 100%;
-    background-position:0 0, 55px 70px, 0 0, 0 0;
+      linear-gradient(0deg, rgba(60,90,40,.18) 0%, transparent 22%);  /* 바닥 음영 */
+    background-size:100% 100%, 110px 110px, 160px 160px, 100% 100%;
+    background-position:0 0, 0 0, 55px 70px, 0 0;
   }
   body.theme-beach, #slideLayer.theme-beach {
     background:
@@ -32,14 +33,17 @@
       repeating-linear-gradient(180deg, #d2a472 0 44px, #c2925f 44px 46px);
   }
 
-  /* ----- 산책지 배경 3종 ----- */
+  /* ----- 산책지 배경 3종 (하늘 포함) ----- */
   body.theme-forest, #slideLayer.theme-forest {
     background-color:#5b8f49;
     background-image:
+      /* 하늘 → 숲 지평선 */
+      linear-gradient(180deg, #6ab0cf 0%, #93cfe0 15%, #bfe6ee 23%, #b3d79e 27.5%, #5e9249 30.5%, transparent 33%),
       radial-gradient(#68a055 14%, transparent 15%),
-      radial-gradient(#4e8040 11%, transparent 12%);
-    background-size:110px 110px, 160px 160px;
-    background-position:0 0, 55px 70px;
+      radial-gradient(#4e8040 11%, transparent 12%),
+      linear-gradient(0deg, rgba(40,70,30,.2) 0%, transparent 22%);
+    background-size:100% 100%, 110px 110px, 160px 160px, 100% 100%;
+    background-position:0 0, 0 0, 55px 70px, 0 0;
   }
   body.theme-road, #slideLayer.theme-road {
     background:linear-gradient(#5cb6d6 0%, #7ecbe3 20%, #b5e6ef 24%, #f3e0b0 26%,
@@ -48,16 +52,18 @@
   body.theme-park, #slideLayer.theme-park {
     background-color:#9ccb77;
     background-image:
+      /* 하늘 → 공원 잔디 지평선 */
+      linear-gradient(180deg, #5cb6d6 0%, #86cfe6 15%, #b9e6f0 23%, #cdeccb 27.5%, #9ecb78 30.5%, transparent 33%),
       linear-gradient(transparent 0 56%, #e8d8ae 56% 70%, transparent 70%),
       radial-gradient(#a9d685 14%, transparent 15%);
-    background-size:100% 100%, 120px 120px;
+    background-size:100% 100%, 100% 100%, 120px 120px;
+    background-position:0 0, 0 0, 0 0;
   }
   #grassTop, #seaFoam, #roadLine, #rug { pointer-events:none; }
   #roadLine { position:fixed; left:0; width:100%; top:36%; height:8px; z-index:1; display:none;
     background:repeating-linear-gradient(90deg, #f5f2e8 0 46px, transparent 46px 92px); }
   body.theme-road #roadLine { display:block; }
-  body.theme-forest #grassTop { display:block; background:#3e7034; border-color:#35602d; }
-  body.theme-park   #grassTop { display:block; }
+  /* 숲/공원도 그라디언트 지평선을 쓰므로 상단 초록 띠는 숨김 */
 
   /* 산책 중에는 집 소품(개집/쿠션/장난감)이 안 보이게 */
   .prop { transition:opacity .6s; }
@@ -72,7 +78,7 @@
   /* 테마별 전용 장식 (해당 테마일 때만 보임) */
   #grassTop { position:fixed; top:0; left:0; width:100%; height:64px; z-index:1;
     background:#79ab55; border-bottom:6px solid #6a9c49; display:none; }
-  body.theme-grass #grassTop { display:block; }
+  /* 잔디는 그라디언트 지평선을 쓰므로 상단 초록 띠는 숨김 (숲/공원만 사용) */
 
   #seaFoam { position:fixed; left:0; width:100%; top:calc(30% - 14px); height:9px; z-index:1;
     background:rgba(255,255,255,.7); border-radius:50%; filter:blur(2px); display:none;
@@ -300,12 +306,12 @@ const BREEDS = {
 
 /* ----- 배경 테마: 바닥이 시작되는 높이(floorTop)가 달라요 ----- */
 const THEMES = {
-  grass : () => 70,                      // 잔디: 위쪽 수풀 아래부터
+  grass : () => innerHeight * 0.30,      // 잔디: 하늘 아래 지평선부터
   beach : () => innerHeight * 0.30,      // 해변: 바다 아래 모래부터
   room  : () => innerHeight * 0.24,      // 거실: 벽 아래 마루부터
-  forest: () => 70,                      // (산책지) 숲속
+  forest: () => innerHeight * 0.30,      // (산책지) 숲속 — 하늘 아래 지평선부터
   road  : () => innerHeight * 0.30,      // (산책지) 해변도로
-  park  : () => 70                       // (산책지) 공원
+  park  : () => innerHeight * 0.30       // (산책지) 공원 — 하늘 아래 지평선부터
 };
 
 /* 집 테마별 산책지: [배경이름, 말풍선 문구] */
@@ -675,10 +681,10 @@ const DECOR = [
   { cls:'r', x:'6%',  y:'15%', s:5, w:12, h:16, draw:drawPlant },
   { cls:'r', x:'40%', y:'4%',  s:5, w:20, h:16, draw:drawWindow },
   { cls:'r', x:'88%', y:'62%', s:5, w:12, h:8,  draw:drawBush },
-  // 산책지: 숲속(f)
-  { cls:'f', x:'8%',  y:'16%', s:5, w:16, h:15, draw:drawTree },
-  { cls:'f', x:'72%', y:'10%', s:5, w:16, h:15, draw:drawTree },
-  { cls:'f', x:'42%', y:'28%', s:4, w:16, h:15, draw:drawTree },
+  // 산책지: 숲속(f) — 나무는 지평선(30%)에 걸치도록
+  { cls:'f', x:'8%',  y:'24%', s:5, w:16, h:15, draw:drawTree },
+  { cls:'f', x:'72%', y:'22%', s:5, w:16, h:15, draw:drawTree },
+  { cls:'f', x:'42%', y:'27%', s:4, w:16, h:15, draw:drawTree },
   { cls:'f', x:'22%', y:'68%', s:4, w:8,  h:6,  draw:drawMush },
   { cls:'f', x:'62%', y:'82%', s:4, w:8,  h:6,  draw:drawMush },
   { cls:'f', x:'85%', y:'55%', s:4, w:9,  h:6,  draw:drawTuft },
@@ -692,10 +698,10 @@ const DECOR = [
   { cls:'d', x:'60%', y:'87%', s:4, w:9,  h:6,  draw:drawTuft },
   { cls:'d', x:'48%', y:'70%', s:5, w:11, h:9,  draw:drawSandcastle },
   { cls:'d', x:'20%', y:'80%', s:4, w:5,  h:5,  draw:drawStarfishSm },
-  // 산책지: 공원(p)
-  { cls:'p', x:'10%', y:'12%', s:5, w:16, h:15, draw:drawTree },
-  { cls:'p', x:'76%', y:'9%',  s:5, w:16, h:15, draw:drawTree },
-  { cls:'p', x:'44%', y:'16%', s:5, w:16, h:9,  draw:drawBench },
+  // 산책지: 공원(p) — 나무는 지평선(30%)에 걸치고, 벤치는 잔디 위로
+  { cls:'p', x:'10%', y:'23%', s:5, w:16, h:15, draw:drawTree },
+  { cls:'p', x:'76%', y:'21%', s:5, w:16, h:15, draw:drawTree },
+  { cls:'p', x:'44%', y:'40%', s:5, w:16, h:9,  draw:drawBench },
   { cls:'p', x:'20%', y:'78%', s:4, w:8,  h:8,  draw:drawFlower('#ffffff') },
   { cls:'p', x:'84%', y:'60%', s:4, w:7,  h:8,  draw:drawTulip },
   { cls:'p', x:'58%', y:'66%', s:5, w:12, h:8,  draw:drawBush },
