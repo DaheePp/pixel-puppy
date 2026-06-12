@@ -9,25 +9,31 @@
   html, body { width:100%; height:100%; overflow:hidden; }
   body { font-family:'Apple SD Gothic Neo','Pretendard',sans-serif; transition:background .8s; }
 
-  /* ===== 배경 테마 3종 ===== */
-  body.theme-grass {
+  /* ===== 배경 테마 3종 (body와 슬라이드 레이어가 함께 사용) ===== */
+  body.theme-grass, #slideLayer.theme-grass {
     background-color:#90c26b;
     background-image:
       radial-gradient(#9ecf79 14%, transparent 15%),
-      radial-gradient(#85b65f 11%, transparent 12%);
-    background-size:110px 110px, 160px 160px;
-    background-position:0 0, 55px 70px;
+      radial-gradient(#85b65f 11%, transparent 12%),
+      linear-gradient(180deg, #b6e0f0 0%, #c7e7a8 12%, transparent 28%),
+      linear-gradient(0deg, rgba(60,90,40,.18) 0%, transparent 30%);
+    background-size:110px 110px, 160px 160px, 100% 100%, 100% 100%;
+    background-position:0 0, 55px 70px, 0 0, 0 0;
   }
-  body.theme-beach {
-    background:linear-gradient(#5cb6d6 0%, #7ecbe3 22%, #b5e6ef 27%, #f3e0b0 31%, #ecd49e 100%);
+  body.theme-beach, #slideLayer.theme-beach {
+    background:
+      radial-gradient(circle at 78% 12%, rgba(255,247,210,.85) 0%, transparent 26%),
+      linear-gradient(#4fa9d4 0%, #6cc0e0 18%, #aee2ef 26%, #f5e6b8 31%, #efd9a2 60%, #e6c98e 100%);
   }
-  body.theme-room {
-    background:linear-gradient(#efe7d9 0%, #efe7d9 23.5%, #b98c5d 24%, transparent 24%),
-      repeating-linear-gradient(180deg, #cfa06f 0 44px, #c2925f 44px 46px);
+  body.theme-room, #slideLayer.theme-room {
+    background:
+      linear-gradient(120deg, rgba(255,240,200,.5) 0%, transparent 38%),
+      linear-gradient(#f3ece0 0%, #efe7d9 23.5%, #b98c5d 24%, transparent 24%),
+      repeating-linear-gradient(180deg, #d2a472 0 44px, #c2925f 44px 46px);
   }
 
   /* ----- 산책지 배경 3종 ----- */
-  body.theme-forest {
+  body.theme-forest, #slideLayer.theme-forest {
     background-color:#5b8f49;
     background-image:
       radial-gradient(#68a055 14%, transparent 15%),
@@ -35,11 +41,11 @@
     background-size:110px 110px, 160px 160px;
     background-position:0 0, 55px 70px;
   }
-  body.theme-road {
+  body.theme-road, #slideLayer.theme-road {
     background:linear-gradient(#5cb6d6 0%, #7ecbe3 20%, #b5e6ef 24%, #f3e0b0 26%,
       #f3e0b0 28%, #75787d 28%, #6a6d72 46%, #f3e0b0 46.5%, #ecd49e 100%);
   }
-  body.theme-park {
+  body.theme-park, #slideLayer.theme-park {
     background-color:#9ccb77;
     background-image:
       linear-gradient(transparent 0 56%, #e8d8ae 56% 70%, transparent 70%),
@@ -57,6 +63,12 @@
   .prop { transition:opacity .6s; }
   body.theme-forest .prop, body.theme-road .prop, body.theme-park .prop { opacity:0; }
 
+  /* ===== 공간 이동 슬라이딩 레이어 ===== */
+  /* 배경 전환 시 목적지 배경이 좌/우에서 밀려 들어와 카메라가 이동하는 느낌 */
+  #slideLayer { position:fixed; inset:0; z-index:4000; display:none; will-change:transform; }
+  body.sliding .prop { opacity:0 !important; }   /* 전환 중 소품은 잠깐 숨김 */
+  body.sliding #decor, body.sliding #sky { opacity:0 !important; }
+
   /* 테마별 전용 장식 (해당 테마일 때만 보임) */
   #grassTop { position:fixed; top:0; left:0; width:100%; height:64px; z-index:1;
     background:#79ab55; border-bottom:6px solid #6a9c49; display:none; }
@@ -72,6 +84,25 @@
     transform:translate(-50%,-50%); border-radius:50%; display:none;
     background:#edf1f4; border:10px solid #d8e0e6; opacity:.9; }
   body.theme-room #rug { display:block; }
+
+  /* ----- 움직이는 하늘 (구름/해/나비) : 실외 테마에서만 ----- */
+  #sky { position:fixed; inset:0; pointer-events:none; z-index:1; overflow:hidden;
+    opacity:0; transition:opacity .6s; }
+  body.theme-grass #sky, body.theme-beach #sky,
+  body.theme-forest #sky, body.theme-road #sky, body.theme-park #sky { opacity:1; }
+  #sky canvas { position:absolute; image-rendering:pixelated; }
+  .cloud { animation:drift linear infinite; }
+  @keyframes drift { from{ transform:translateX(-220px);} to{ transform:translateX(calc(100vw + 220px));} }
+  .sun { animation:sunpulse 4s ease-in-out infinite alternate; }
+  @keyframes sunpulse { from{ filter:brightness(1);} to{ filter:brightness(1.18);} }
+  .bfly { animation:flutter 14s ease-in-out infinite alternate; }
+  @keyframes flutter {
+    0%   { transform:translate(0,0) rotate(-4deg); }
+    25%  { transform:translate(22vw,-7vh) rotate(5deg); }
+    50%  { transform:translate(40vw,4vh) rotate(-3deg); }
+    75%  { transform:translate(60vw,-6vh) rotate(6deg); }
+    100% { transform:translate(82vw,2vh) rotate(-4deg); }
+  }
 
   .deco { position:fixed; pointer-events:none; opacity:0; transition:opacity .6s; z-index:2; }
   body.theme-grass  .deco.g,
@@ -167,6 +198,8 @@
 </head>
 <body class="theme-grass">
 
+<div id="slideLayer"></div>
+<div id="sky"></div>
 <div id="grassTop"></div>
 <div id="seaFoam"></div>
 <div id="roadLine"></div>
@@ -210,7 +243,7 @@
     <div class="cd" id="cdFeed"><div></div></div>
   </div>
   <div class="btnWrap">
-    <button id="btnPlay">⚽ 놀아주기</button>
+    <button id="btnPlay">⚽ 공놀이</button>
     <div class="cd" id="cdPlay"><div></div></div>
   </div>
   <div class="btnWrap">
@@ -239,11 +272,12 @@
    ========================================================= */
 const SCALE = 4;          // 픽셀 1칸 = 4px
 const SAVE_KEY = 'pixelPuppySave_v2';
-const PINK = '#f2a6b8', INK = '#2b2420';
+const PINK = '#f2a6b8', INK = '#2b2420', SPOT = '#3f3a36';
 
 /* ----- 견종 도감: 색과 생김새를 데이터로 정의 -----
    ear: pointy(뾰족) / big(코기 큰귀) / floppy(늘어진) / curly(곱슬)
-   tail: curl(말린꼬리) / pom(방울) / plume(깃털) / nub(짧은 꽁지)   */
+   tail: curl(말린꼬리) / pom(방울) / plume(깃털) / nub(짧은 꽁지)
+   eyeColor: 눈동자 색(없으면 검정) / spots: 점박이 무늬   */
 const BREEDS = {
   poodle : { label:'갈색 푸들',   body:'#a4724e', shade:'#85583a', light:'#c08c63',
              muzzle:'#c08c63', ear:'curly',  tail:'pom',   fluff:true,  legH:4, crown:true  },
@@ -254,7 +288,14 @@ const BREEDS = {
   corgi  : { label:'웰시코기',    body:'#e6a155', shade:'#c4823c', light:'#f2bd7d',
              muzzle:'#fbf3e4', belly:'#fbf3e4', ear:'big', tail:'nub',  fluff:false, legH:2 },
   shiba  : { label:'시바견',      body:'#e3954c', shade:'#c47636', light:'#f0b06d',
-             muzzle:'#fbf1df', belly:'#fbf1df', ear:'pointy', tail:'curl', fluff:false, legH:4 }
+             muzzle:'#fbf1df', belly:'#fbf1df', ear:'pointy', tail:'curl', fluff:false, legH:4 },
+  golden : { label:'골든 리트리버', body:'#e7b86a', shade:'#c8974c', light:'#f6d597',
+             muzzle:'#f9e6c2', belly:'#f9e6c2', ear:'floppy', tail:'plume', fluff:false, legH:4 },
+  husky  : { label:'허스키',      body:'#9aa6b0', shade:'#727f8a', light:'#c3ccd3',
+             muzzle:'#f4f6f7', belly:'#f4f6f7', ear:'pointy', tail:'plume', fluff:false, legH:4,
+             eyeColor:'#5aa9e0', mask:true },
+  dalmatian:{ label:'달마시안',   body:'#fbfbf6', shade:'#dcdcd2', light:'#ffffff',
+             muzzle:'#ffffff', ear:'floppy', tail:'plume', fluff:false, legH:4, spots:true }
 };
 
 /* ----- 배경 테마: 바닥이 시작되는 높이(floorTop)가 달라요 ----- */
@@ -298,6 +339,7 @@ let walkTarget = { x:dog.x, y:dog.y };
 let dir = 1, animFrame = 0, animClock = 0;
 let bubbleTimer = 0, idleTalkClock = 0;
 let walkiesTimer = 0, sparkleClock = 0, jumpUp = false, playCtx = 'toy';
+let sliding = false;   // 배경 슬라이딩(공간 이동) 연출 중인지
 let playSession = false, dragging = false, lastBallTouch = 0, dragSamples = [];
 let calledByUser = false;   // 산책 중 유저가 불러서 가는 중인지 (빠르게 달려감)
 let visualTheme = 'grass';   // 지금 화면에 보이는 배경 (산책 중엔 임시로 바뀜)
@@ -337,21 +379,30 @@ function drawHead(g, b, hx, hy, closed) {
   if (b.cheeks) { // 볼 복슬 (포메)
     P(g, hx-1, hy+3, 1, 3, b.light); P(g, hx+10, hy+3, 1, 3, b.light);
   }
+  if (b.mask) {   // 이마~주둥이로 이어지는 밝은 줄무늬 (허스키)
+    P(g, hx+4, hy+1, 2, 4, b.muzzle || b.light);
+  }
 
   // 주둥이 + 코 + 입
   P(g, hx+3, hy+5, 4, 3, b.muzzle || b.light);
   P(g, hx+4, hy+5, 2, 1, INK);
   P(g, hx+5, hy+7, 1, 1, b.shade);
 
-  // 눈 (반짝이 포함) / 감은 눈
+  // 눈 (큰 반짝이로 더 또렷하고 귀엽게) / 감은 눈
   if (closed) {
-    P(g, hx+2, hy+4, 2, 1, INK); P(g, hx+6, hy+4, 2, 1, INK);
+    // ‿‿ 모양으로 살짝 휘어 더 사랑스럽게
+    P(g, hx+2, hy+4, 2, 1, INK); P(g, hx+1, hy+3, 1, 1, INK);
+    P(g, hx+6, hy+4, 2, 1, INK); P(g, hx+8, hy+3, 1, 1, INK);
   } else {
-    P(g, hx+2, hy+3, 2, 2, INK); P(g, hx+6, hy+3, 2, 2, INK);
-    P(g, hx+3, hy+3, 1, 1, '#fff'); P(g, hx+7, hy+3, 1, 1, '#fff');
+    const ec = b.eyeColor || INK;
+    P(g, hx+2, hy+3, 2, 2, ec); P(g, hx+6, hy+3, 2, 2, ec);
+    if (b.eyeColor) { P(g, hx+3, hy+4, 1, 1, INK); P(g, hx+6, hy+4, 1, 1, INK); }  // 동공
+    // 큰 반짝이(좌상) + 작은 윤기(우하)로 촉촉한 눈
+    P(g, hx+2, hy+3, 1, 1, '#fff'); P(g, hx+6, hy+3, 1, 1, '#fff');
+    P(g, hx+3, hy+4, 1, 1, '#ffffff88'); P(g, hx+7, hy+4, 1, 1, '#ffffff88');
   }
-  // 볼터치
-  P(g, hx+1, hy+6, 1, 1, PINK); P(g, hx+8, hy+6, 1, 1, PINK);
+  // 볼터치 (도톰하게)
+  P(g, hx, hy+6, 2, 1, PINK); P(g, hx+8, hy+6, 2, 1, PINK);
 }
 
 /* ----- 꼬리 (f가 0/1로 바뀌며 살랑살랑) ----- */
@@ -381,6 +432,7 @@ function drawDogSprite(g, b, pose, f) {
     P(g, 5, bt+1, 12, 4, b.body);
     if (b.fluff) { P(g,6,bt-1,2,1,b.body); P(g,9,bt-1,2,1,b.body); P(g,12,bt-1,2,1,b.body); }
     if (b.belly) P(g, 6, bt+4, 9, 2, b.belly);
+    if (b.spots) { P(g,7,bt+1,1,1,SPOT); P(g,12,bt,1,1,SPOT); P(g,10,bt+3,2,1,SPOT); P(g,14,bt+2,1,1,SPOT); }
     // 다리 4개 (걸을 때 두 쌍이 번갈아 들림)
     const tuck = pose === 'jump' ? Math.min(2, legH-1) : 0;
     [[6,0],[9,1],[12,1],[15,0]].forEach(([lx, gr]) => {
@@ -399,6 +451,7 @@ function drawDogSprite(g, b, pose, f) {
     P(g, 6, 16, 7, 8, b.body);       // 몸통 (엉덩이 바닥)
     if (b.fluff) { P(g,7,14,2,1,b.body); P(g,10,14,2,1,b.body); }
     if (b.belly) P(g, 9, 18, 4, 6, b.belly);
+    if (b.spots) { P(g,7,17,1,1,SPOT); P(g,10,20,2,1,SPOT); P(g,8,21,1,1,SPOT); }
     P(g, 12, 18, 2, 6, b.body);      // 앞다리
     P(g, 12, 23, 2, 1, b.shade);
     drawHead(g, b, 9, 8, false);
@@ -408,6 +461,7 @@ function drawDogSprite(g, b, pose, f) {
     P(g, 5, 18, 12, 1, b.body);
     P(g, 4, 19, 14, 5, b.body);      // 납작 엎드린 몸
     if (b.fluff) { P(g,6,17,2,1,b.body); P(g,10,17,2,1,b.body); P(g,14,17,2,1,b.body); }
+    if (b.spots) { P(g,7,20,1,1,SPOT); P(g,11,19,1,1,SPOT); P(g,13,22,2,1,SPOT); }
     P(g, 17, 21, 3, 3, b.body);      // 쭉 뻗은 앞발
     drawHead(g, b, 9, pose === 'sleep' ? 14 : 12, pose === 'sleep');
   }
@@ -542,6 +596,61 @@ function drawPlant(g) {
   P(g,4,7,4,2,LD);
   P(g,2,9,8,2,PR); P(g,3,11,6,4,PO); P(g,3,14,6,1,PR);
 }
+function drawBush(g) {
+  const L='#5ba34c', LL='#76bc60', LD='#458a3a';   // 동글동글 덤불
+  P(g,3,1,6,1,L); P(g,1,2,10,3,L); P(g,0,5,12,2,L); P(g,2,7,8,1,LD);
+  P(g,3,2,2,1,LL); P(g,7,3,2,1,LL);
+}
+function drawDaisy(g) {
+  const W='#ffffff', Y='#f5cb43', S='#5d8f3f';     // 데이지 한 송이
+  P(g,2,0,2,1,W); P(g,0,2,1,2,W); P(g,5,2,1,2,W); P(g,2,4,2,1,W);
+  P(g,2,1,2,2,W); P(g,1,2,4,1,W);
+  P(g,2,2,2,1,Y);
+  P(g,2,5,1,3,S); P(g,1,6,2,1,S);
+}
+function drawMushPair(g) {
+  P(g,1,2,4,2,'#e88a4a'); P(g,0,3,6,1,'#e88a4a');  // 작은 주황 버섯 둘
+  P(g,2,4,2,3,'#f3e9d2');
+  P(g,7,0,4,2,'#d8554f'); P(g,6,1,6,1,'#d8554f');
+  P(g,8,2,2,4,'#f3e9d2'); P(g,8,1,1,1,'#fff');
+}
+function drawRock(g) {
+  const R='#a7adb2', RL='#c2c7cb', RD='#878d92';   // 돌멩이
+  P(g,2,2,7,1,R); P(g,1,3,9,3,R); P(g,2,6,7,1,RD);
+  P(g,3,3,3,1,RL);
+}
+function drawSandcastle(g) {
+  const S='#e8c87e', SD='#cda85d';                 // 모래성
+  P(g,1,4,10,5,S); P(g,1,8,10,1,SD);
+  P(g,1,1,2,3,S); P(g,5,0,2,4,S); P(g,9,1,2,3,S);
+  P(g,5,0,1,1,'#e3504a');                          // 깃발
+}
+function drawStarfishSm(g) {
+  const O='#f2a04b';
+  P(g,2,0,1,2,O); P(g,1,2,3,1,O); P(g,0,3,5,1,O); P(g,1,4,1,1,O); P(g,3,4,1,1,O);
+}
+
+/* ----- 움직이는 하늘 요소 ----- */
+function drawSun(g) {
+  const Y='#ffd34d', YL='#fff0a8', YD='#f4b740';
+  P(g,4,1,6,1,Y); P(g,2,2,10,2,Y); P(g,1,4,12,4,Y); P(g,2,8,10,2,Y); P(g,4,10,6,1,Y);
+  P(g,3,3,4,3,YL);                                 // 하이라이트
+  P(g,9,7,3,2,YD);                                 // 그림자
+  // 햇살
+  P(g,6,0,2,1,Y); P(g,6,11,2,1,Y); P(g,0,5,1,2,Y); P(g,13,5,1,2,Y);
+}
+function drawCloud(g) {
+  const W='#ffffff', S='#e4eef5';                  // 폭신한 구름
+  P(g,5,1,6,1,W); P(g,3,2,10,2,W); P(g,1,4,16,3,W); P(g,3,7,12,1,S);
+  P(g,4,2,3,1,W); P(g,11,4,3,1,W);
+}
+function drawButterfly(g, f) {
+  const W='#f6a8d0', WD='#e074ad', B='#5a4632';    // 분홍 나비 (f로 날갯짓)
+  const up = f ? 0 : 1;
+  P(g,1,1+up,3,2,W); P(g,1,3+up,2,2,WD);           // 왼날개
+  P(g,6,1+up,3,2,W); P(g,7,3+up,2,2,WD);           // 오른날개
+  P(g,4,1,1,5,B);                                  // 몸통
+}
 
 /* 어떤 장식을 / 어느 테마에 / 화면 어디에 / 몇 배 크기로 둘지 */
 const DECOR = [
@@ -551,12 +660,21 @@ const DECOR = [
   { cls:'g', x:'86%', y:'48%', s:4, w:8,  h:8,  draw:drawFlower('#f4b8c8') },
   { cls:'g', x:'52%', y:'84%', s:4, w:9,  h:6,  draw:drawTuft },
   { cls:'g', x:'8%',  y:'76%', s:4, w:8,  h:8,  draw:drawFlower('#ffffff') },
+  { cls:'g', x:'28%', y:'42%', s:4, w:6,  h:8,  draw:drawDaisy },
+  { cls:'g', x:'74%', y:'40%', s:5, w:12, h:8,  draw:drawBush },
+  { cls:'g', x:'44%', y:'70%', s:4, w:6,  h:8,  draw:drawDaisy },
+  { cls:'g', x:'92%', y:'80%', s:4, w:10, h:6,  draw:drawRock },
   { cls:'b', x:'82%', y:'33%', s:5, w:16, h:18, draw:drawPalm },
   { cls:'b', x:'24%', y:'55%', s:4, w:9,  h:7,  draw:drawShell },
   { cls:'b', x:'62%', y:'80%', s:4, w:9,  h:8,  draw:drawStar },
   { cls:'b', x:'44%', y:'88%', s:4, w:9,  h:7,  draw:drawShell },
+  { cls:'b', x:'14%', y:'72%', s:5, w:11, h:9,  draw:drawSandcastle },
+  { cls:'b', x:'70%', y:'58%', s:4, w:5,  h:5,  draw:drawStarfishSm },
+  { cls:'b', x:'34%', y:'66%', s:4, w:10, h:6,  draw:drawRock },
   { cls:'r', x:'70%', y:'4%',  s:5, w:20, h:16, draw:drawWindow },
   { cls:'r', x:'6%',  y:'15%', s:5, w:12, h:16, draw:drawPlant },
+  { cls:'r', x:'40%', y:'4%',  s:5, w:20, h:16, draw:drawWindow },
+  { cls:'r', x:'88%', y:'62%', s:5, w:12, h:8,  draw:drawBush },
   // 산책지: 숲속(f)
   { cls:'f', x:'8%',  y:'16%', s:5, w:16, h:15, draw:drawTree },
   { cls:'f', x:'72%', y:'10%', s:5, w:16, h:15, draw:drawTree },
@@ -564,17 +682,24 @@ const DECOR = [
   { cls:'f', x:'22%', y:'68%', s:4, w:8,  h:6,  draw:drawMush },
   { cls:'f', x:'62%', y:'82%', s:4, w:8,  h:6,  draw:drawMush },
   { cls:'f', x:'85%', y:'55%', s:4, w:9,  h:6,  draw:drawTuft },
+  { cls:'f', x:'34%', y:'60%', s:5, w:12, h:8,  draw:drawBush },
+  { cls:'f', x:'52%', y:'74%', s:4, w:12, h:7,  draw:drawMushPair },
+  { cls:'f', x:'12%', y:'48%', s:4, w:10, h:6,  draw:drawRock },
   // 산책지: 해변도로(d)
   { cls:'d', x:'6%',  y:'55%', s:5, w:16, h:18, draw:drawPalm },
   { cls:'d', x:'86%', y:'62%', s:5, w:16, h:18, draw:drawPalm },
   { cls:'d', x:'35%', y:'80%', s:4, w:9,  h:7,  draw:drawShell },
   { cls:'d', x:'60%', y:'87%', s:4, w:9,  h:6,  draw:drawTuft },
+  { cls:'d', x:'48%', y:'70%', s:5, w:11, h:9,  draw:drawSandcastle },
+  { cls:'d', x:'20%', y:'80%', s:4, w:5,  h:5,  draw:drawStarfishSm },
   // 산책지: 공원(p)
   { cls:'p', x:'10%', y:'12%', s:5, w:16, h:15, draw:drawTree },
   { cls:'p', x:'76%', y:'9%',  s:5, w:16, h:15, draw:drawTree },
   { cls:'p', x:'44%', y:'16%', s:5, w:16, h:9,  draw:drawBench },
   { cls:'p', x:'20%', y:'78%', s:4, w:8,  h:8,  draw:drawFlower('#ffffff') },
-  { cls:'p', x:'84%', y:'60%', s:4, w:7,  h:8,  draw:drawTulip }
+  { cls:'p', x:'84%', y:'60%', s:4, w:7,  h:8,  draw:drawTulip },
+  { cls:'p', x:'58%', y:'66%', s:5, w:12, h:8,  draw:drawBush },
+  { cls:'p', x:'32%', y:'58%', s:4, w:6,  h:8,  draw:drawDaisy }
 ];
 
 (function buildDecor() {
@@ -589,6 +714,41 @@ const DECOR = [
     d.draw(g);
     wrap.appendChild(cv);
   });
+})();
+
+/* ----- 움직이는 하늘: 해 + 흘러가는 구름 + 팔랑이는 나비 ----- */
+(function buildSky() {
+  const sky = document.getElementById('sky');
+  const make = (w, h, s, draw, cls) => {
+    const cv = document.createElement('canvas');
+    cv.width = w * s; cv.height = h * s;
+    cv.className = cls;
+    const g = cv.getContext('2d');
+    g.setTransform(s, 0, 0, s, 0, 0);
+    draw(g);
+    sky.appendChild(cv);
+    return cv;
+  };
+
+  // 해 (좌상단에 둥실)
+  const sun = make(14, 12, 5, drawSun, 'sun');
+  sun.style.left = '6%'; sun.style.top = '7%';
+
+  // 구름 3개 (하늘 상단에서 각각 다른 속도로 흘러감)
+  [['5%', 64, 5], ['12%', 80, 5.5], ['8%', 50, 4.5]].forEach(([top, dur, sc], i) => {
+    const c = make(18, 9, sc, drawCloud, 'cloud');
+    c.style.top = top;
+    c.style.animationDuration = dur + 's';
+    c.style.animationDelay = (-i * 7) + 's';   // 시작 시점을 흩어 자연스럽게
+    c.style.opacity = '.92';
+  });
+
+  // 나비 (양 날개 프레임을 번갈아 그려 날갯짓)
+  const bfly = make(9, 7, 4, g => drawButterfly(g, 0), 'bfly');
+  bfly.style.left = '4%'; bfly.style.top = '40%';
+  const bg = bfly.getContext('2d');
+  let bf = 0;
+  setInterval(() => { bf ^= 1; bg.clearRect(0, 0, 9, 7); drawButterfly(bg, bf); }, 180);
 })();
 
 // 밥그릇 (14x7)
@@ -756,10 +916,12 @@ function nudgeBall() {
   dir = ball.vx > 0 ? 1 : -1;          // 굴린 방향을 바라보기
 }
 
-/* 산책 마무리: 집 배경 복귀 + 보상 (도중에 다른 행동으로 전환해도 보상은 받아요) */
-function endWalkies() {
-  setVisual(pet.theme);
-  pet.happy = Math.min(100, pet.happy + 30);
+/* 산책 마무리: 집 배경 복귀 + 보상 (도중에 다른 행동으로 전환해도 보상은 받아요)
+   slide=true 면 집으로 슬라이딩 연출, false 면 즉시 복귀(다른 버튼으로 끊겼을 때) */
+function endWalkies(slide) {
+  if (slide) slideToVisual(pet.theme, -1, false);   // 집으로 되돌아가는 슬라이딩
+  else setVisual(pet.theme);
+  pet.happy = Math.min(100, pet.happy + 18);
   pet.hunger = Math.max(0, pet.hunger - 12);  // 산책하면 배가 많이 고파져요
   pet.energy = Math.max(0, pet.energy - 12);
   gainXp(20);
@@ -768,7 +930,7 @@ function endWalkies() {
 /* 하던 활동 정리: 다른 버튼을 눌러도 자연스럽게 전환되도록 */
 function interrupt() {
   if (playSession) endPlay();
-  else if (state === 'walkies') endWalkies();
+  else if (state === 'walkies') endWalkies(false);   // 다른 행동으로 전환 → 즉시 집 복귀
   jumpUp = false;
 }
 
@@ -776,7 +938,7 @@ function interrupt() {
 function endPlay() {
   playSession = false; dragging = false; jumpUp = false;
   ball.active = false; ballEl.style.display = 'none';
-  pet.happy = Math.min(100, pet.happy + 35);
+  pet.happy = Math.min(100, pet.happy + 20);
   pet.energy = Math.max(0, pet.energy - 8);
   pet.hunger = Math.max(0, pet.hunger - 8);   // 신나게 놀면 배가 고파져요
   gainXp(15);
@@ -790,7 +952,7 @@ function walkies() {
   if (pet.energy <= 20) { say('산책 가기엔 너무 졸려요... 💤'); return; }
   interrupt();
   const [dest, phrase] = WALK_DEST[pet.theme];
-  setVisual(dest);                       // 산책지로 배경 전환!
+  slideToVisual(dest, 1, false);         // 산책지로 슬라이딩 (강아지는 산책 루프가 움직임)
   walkiesTimer = 10;
   walkTarget = randomSpot();
   say(`${phrase} 산책 가자~! 🐾`, 2.5);
@@ -872,11 +1034,12 @@ function petDog() {
 }
 
 function gainXp(n) {
+  if (pet.level >= 100) return;
   pet.xp += n;
   const need = pet.level * 50;
   if (pet.xp >= need) {
     pet.xp -= need; pet.level++;
-    say(`레벨 업! Lv.${pet.level} 🎉`, 3);
+    say(pet.level >= 100 ? '최대 레벨 달성! 🏆' : `레벨 업! Lv.${pet.level} 🎉`, 3);
     hearts(6);
   }
   save();
@@ -956,7 +1119,7 @@ function loop(now) {
     if (sparkleClock > 0.45) { sparkleClock = 0; spawnFx(['✨','🎵','💨'], 1, dog.x, dog.y); }
     walkiesTimer -= dt;
     if (walkiesTimer <= 0) {
-      endWalkies();                      // 산책 끝, 집으로 돌아오기
+      endWalkies(true);                  // 산책 끝, 집으로 슬라이딩하며 돌아오기
       say('산책 최고! 🥰', 2.5);
       setState('lie', 4);
     }
@@ -966,8 +1129,8 @@ function loop(now) {
     stateTimer -= dt;
     if (stateTimer <= 0) {
       bowl.active = false; bowlEl.style.display = 'none';
-      pet.hunger = Math.min(100, pet.hunger + 50);
-      pet.happy = Math.min(100, pet.happy + 5);
+      pet.hunger = Math.min(100, pet.hunger + 25);
+      pet.happy = Math.min(100, pet.happy + 3);
       say('맛있다!! 🐾', 2.5);
       gainXp(10);
       setState('sit', 3);
@@ -979,7 +1142,7 @@ function loop(now) {
       stateTimer -= dt;
       if (stateTimer <= 0) {
         jumpUp = false;
-        pet.happy = Math.min(100, pet.happy + 3);
+        pet.happy = Math.min(100, pet.happy + 2);
         setState('idle', 2);
       }
     } else if (dragging || !ball.settled) {
@@ -1046,14 +1209,16 @@ function render() {
   drawDogSprite(dogCtx, b, poseOf[state] || 'stand', animFrame);
 
   const s = depthScale();
+  // 슬라이딩 중엔 강아지를 배경 레이어(z4000) 위로 띄워 같이 걷는 것처럼 보이게
+  const dogZ = sliding ? 4500 : Math.round(dog.y);
   dogEl.style.left = (dog.x - 52) + 'px';
   dogEl.style.top  = (dog.y - 96) + 'px';
-  dogEl.style.zIndex = Math.round(dog.y);
+  dogEl.style.zIndex = dogZ;
   dogEl.style.transform = `scale(${dir * s}, ${s}) translateY(${jumpUp ? -16 : 0}px)`;
 
   shadowEl.style.left = (dog.x - 38) + 'px';
   shadowEl.style.top  = (dog.y - 12) + 'px';
-  shadowEl.style.zIndex = Math.round(dog.y) - 1;
+  shadowEl.style.zIndex = dogZ - 1;
   shadowEl.style.transform = `scale(${s})`;
 
   bubbleEl.style.left = (dog.x - 16) + 'px';
@@ -1062,7 +1227,7 @@ function render() {
   document.getElementById('hungerFill').style.width = pet.hunger + '%';
   document.getElementById('happyFill').style.width  = pet.happy + '%';
   document.getElementById('energyFill').style.width = pet.energy + '%';
-  document.getElementById('xpFill').style.width = (pet.xp / (pet.level * 50) * 100) + '%';
+  document.getElementById('xpFill').style.width = pet.level >= 100 ? '100%' : (pet.xp / (pet.level * 50) * 100) + '%';
   document.getElementById('lvl').textContent = 'Lv.' + pet.level;
   document.getElementById('dogName').textContent = pet.name;
 
@@ -1115,23 +1280,58 @@ function setCd(id, frac) {
 /* 화면에 보이는 배경만 바꾸기 (산책 갈 때 사용) */
 function setVisual(t) {
   visualTheme = t;
-  document.body.className = 'theme-' + t;
+  document.body.className = 'theme-' + t + (sliding ? ' sliding' : '');
   layoutProps();
   // 강아지가 바닥 밖에 있으면 안으로 데려오기
   const ft = floorTop();
   if (dog.y < ft + 40) dog.y = ft + 60;
 }
 
+/* ----- 공간 이동 슬라이딩: 목적지 배경이 dir 방향에서 밀려 들어옴 -----
+   dir +1 = 강아지가 오른쪽으로 걸어가고 새 공간이 오른쪽에서 등장
+   trot=true 면 강아지도 그 방향으로 종종 걸어가요 (테마 버튼 전환용) */
+const SLIDE_MS = 850;
+function slideToVisual(t, dir, trot) {
+  if (sliding) { setVisual(t); return; }   // 연출 겹치면 즉시 전환
+  sliding = true;
+  const layer = document.getElementById('slideLayer');
+  layer.className = 'theme-' + t;                 // 목적지 배경 칠하기
+  layer.style.transition = 'none';
+  layer.style.transform = `translateX(${dir > 0 ? 100 : -100}%)`;
+  layer.style.display = 'block';
+  document.body.classList.add('sliding');         // 소품/장식 잠깐 숨김
+  void layer.offsetWidth;                          // 리플로우 (애니메이션 시작점 확정)
+  layer.style.transition = `transform ${SLIDE_MS}ms ease-in-out`;
+  layer.style.transform = 'translateX(0)';
+
+  if (trot) {   // 강아지가 이동 방향으로 종종 걸어가기
+    walkTarget = { x: dir > 0 ? innerWidth * 0.72 : innerWidth * 0.28, y: dog.y };
+    setState('walk', 9999);
+  }
+
+  setTimeout(() => {
+    sliding = false;
+    setVisual(t);                  // 실제 배경 커밋 (body 클래스 교체)
+    layer.style.display = 'none';
+    if (trot) pickBehavior();
+  }, SLIDE_MS);
+}
+
+/* 집 테마 순서 — 슬라이드 방향 계산용 (오른쪽 테마로 가면 오른쪽으로 이동) */
+const HOME_ORDER = ['grass', 'beach', 'room'];
+
 /* 집 테마를 진짜로 바꾸기 (저장됨) */
-function applyTheme(t) {
+function applyTheme(t, animate) {
+  const dir = HOME_ORDER.indexOf(t) >= HOME_ORDER.indexOf(pet.theme) ? 1 : -1;
   pet.theme = t;
-  setVisual(t);
+  if (animate) slideToVisual(t, dir, true);   // 버튼 전환은 슬라이딩 연출
+  else setVisual(t);                          // 최초 로드는 즉시
   document.querySelectorAll('#themeRow button').forEach(btn =>
     btn.classList.toggle('on', btn.dataset.theme === t));
   if (started) save();
 }
 document.querySelectorAll('#themeRow button').forEach(btn =>
-  btn.onclick = () => applyTheme(btn.dataset.theme));
+  btn.onclick = () => applyTheme(btn.dataset.theme, true));
 
 /* =========================================================
    12. 저장 & 불러오기

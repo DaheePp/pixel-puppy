@@ -1,0 +1,27 @@
+{
+  "name": "pixel-puppy",
+  "version": "1.0.0",
+  "description": "방치형 데스크톱 펫",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:mac": "electron-builder --mac"
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "build": {
+    "appId": "com.daheep.pixelpuppy",
+    "productName": "픽셀 강아지",
+    "mac": {
+      "category": "public.app-category.entertainment",
+      "target": [{ "target": "dmg", "arch": ["arm64", "x64"] }]
+    },
+    "files": [
+      "index.html",
+      "main.js",
+      "preload.js"
+    ]
+  }
+}
